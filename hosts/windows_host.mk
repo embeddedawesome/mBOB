@@ -2,6 +2,7 @@
 $(if $(filter 4,$(firstword $(subst ., ,$(MAKE_VERSION)))),,$(error You're doing it wrong. Must run make version 4.0+. This is version $(MAKE_VERSION)))
 
 HOST_EXECUTABLE_SUFFIX  := .exe
+TOOLS_DIRECTORY :=tools/windows
 
 SLASH_QUOTE_START :="\"
 SLASH_QUOTE_END   :=\""
@@ -10,22 +11,14 @@ ESC_QUOTE:="
 ESC_SPACE:=$(SPACE)
 
 COMMA             :=,
-ECHO              :=$(BOB_SDK_DIRECTORY)tools/common/win32/echo$(HOST_EXECUTABLE_SUFFIX)
-CP                :=$(BOB_SDK_DIRECTORY)tools/common/win32/cp$(HOST_EXECUTABLE_SUFFIX)
-PERL              :=$(BOB_SDK_DIRECTORY)tools/common/win32/perl$(HOST_EXECUTABLE_SUFFIX)
-AWK               :=$(BOB_SDK_DIRECTORY)tools/common/win32/awk$(HOST_EXECUTABLE_SUFFIX)
-QUOTES_FOR_ECHO   :=
-TOUCH             :=$(ECHO) >
+ECHO              :=$(TOOLS_DIRECTORY)/echo.exe
+CP                :=$(TOOLS_DIRECTORY)/cp.exe
+TOUCH             :=$(TOOLS_DIRECTORY)/touch.exe
 QUIET             :=@
-RM                :=$(BOB_SDK_DIRECTORY)tools/common/win32/rm$(HOST_EXECUTABLE_SUFFIX)
+RM                :=$(TOOLS_DIRECTORY)/rm.exe
 SILENCE_MAKE      :=-s
-CAT               :=$(BOB_SDK_DIRECTORY)tools/common/win32/cat$(HOST_EXECUTABLE_SUFFIX)
-GIT               :=$(BOB_SDK_DIRECTORY)tools/common/win32/git$(HOST_EXECUTABLE_SUFFIX)
-OPENSSL           :=$(BOB_SDK_DIRECTORY)tools/common/win32/openssl$(HOST_EXECUTABLE_SUFFIX)
-export OPENSSL_CONF=tools/common/win32/openssl.cnf
-CURL              :=$(BOB_SDK_DIRECTORY)tools/common/win32/curl$(HOST_EXECUTABLE_SUFFIX)
-
-BOB_ABSOLUTE_SUBST :=/cygdrive/$(firstword $(subst /, ,$(subst /cygdrive/,,$(abspath .))))
+CAT               :=$(TOOLS_DIRECTORY)/cat.exe
+GIT               :=$(TOOLS_DIRECTORY)/git.exe
 
 DEV_NULL          :=NUL
 
@@ -36,9 +29,10 @@ endef
 
 # $(1) is the directory name
 define MKDIR
-md $(1)
+$(TOOLS_DIRECTORY)/mkdir.exe -p $(1)
 endef
 
 CREATE_FILE     =$(file >$(1),$(2))
 APPEND_TO_FILE  =$(file >>$(1),$(2))
 
+export SHELL =$(TOOLS_DIRECTORY)/dash.exe
