@@ -92,19 +92,19 @@ $(eval PROJECT_LIBRARIES += $(BOB_OUTPUT_COMPONENT_DIRECTORY)/$(1)/$(1).a )
 $(BOB_OUTPUT_COMPONENT_DIRECTORY)/$(1)/%.nim.o: $($(1)_DIRECTORY)/%.nim output/$(BOB_PROJECT)/components/$(1)/$(1).c_options
 	$$(info Processing Nim file: $$<)
 	$$(nim_COMPILER) $$(BOB_GLOBAL_NIMFLAGS) $$(addprefix --cincludes:,$$(BOB_GLOBAL_INCLUDES) ./components/libc/embedded_artistry/include ) $$<
-	$(BOB_SDK_DIRECTORY)$$(c_COMPILER) $(if $(TOOLCHAIN_OPTION_FILE_INDICATOR),$(TOOLCHAIN_OPTION_FILE_INDICATOR)output/$(BOB_PROJECT)/components/$(1)/$(1).c_options,$$($(1)_c_COMPILE_OPTIONS)) $(TOOLCHAIN_DEPENDENCY_INDICATOR) -o $$@ $(BOB_GENERATED_FILE_DIRECTORY)/nimcache/$$(notdir $$<).c
+	$$(c_COMPILER) $(if $(TOOLCHAIN_OPTION_FILE_INDICATOR),$(TOOLCHAIN_OPTION_FILE_INDICATOR)output/$(BOB_PROJECT)/components/$(1)/$(1).c_options,$$($(1)_c_COMPILE_OPTIONS)) $(TOOLCHAIN_DEPENDENCY_INDICATOR) -o $$@ $(BOB_GENERATED_FILE_DIRECTORY)/nimcache/$$(notdir $$<).c
 
 $(BOB_OUTPUT_COMPONENT_DIRECTORY)/$(1)/%.o:  $($(1)_DIRECTORY)/% output/$(BOB_PROJECT)/components/$(1)/$(1).options $(BOB_GENERATED_COMPILE_FILES)
 	$$(eval filetype := $$(lastword $$(subst ., ,$$(@:.o=))))
 	$$(eval group_option :=$$(foreach group,$$($(1)_REQUIRED_GROUPS),$$(if $$(findstring $$<, $$(addprefix $$($(1)_DIRECTORY)/,$$($(1)_$$(group)_GROUP_SOURCES))),$(TOOLCHAIN_OPTION_FILE_INDICATOR)output/$(BOB_PROJECT)/components/$(1)/$(1).$$(group).group_$$(filetype)_options,)))
 	$$(info Compiling $$@)
-	$(BOB_SDK_DIRECTORY)$$($$(filetype)_COMPILER) $(if $(TOOLCHAIN_OPTION_FILE_INDICATOR),$(TOOLCHAIN_OPTION_FILE_INDICATOR)output/$(BOB_PROJECT)/components/$(1)/$(1).$$(filetype)_options $$(group_option),$$($(1)_$$(filetype)_COMPILE_OPTIONS)) $(TOOLCHAIN_DEPENDENCY_INDICATOR) -o $$@ $$<
+	$$($$(filetype)_COMPILER) $(if $(TOOLCHAIN_OPTION_FILE_INDICATOR),$(TOOLCHAIN_OPTION_FILE_INDICATOR)output/$(BOB_PROJECT)/components/$(1)/$(1).$$(filetype)_options $$(group_option),$$($(1)_$$(filetype)_COMPILE_OPTIONS)) $(TOOLCHAIN_DEPENDENCY_INDICATOR) $(TOOLCHAIN_COMPILE_OUTPUT_FLAG)$$@ $$<
 	
 $(BOB_OUTPUT_BASE_DIRECTORY)/%/$(1).a: output/%/$(1).ar_options $(addprefix output/$(BOB_PROJECT)/components/$(1)/,$(addsuffix .o,$(filter $(addprefix %.,$(EXTENSIONS)),$($(1)_SOURCES) $($(1)_GENERATED_SOURCES) $(foreach group,$($(1)_REQUIRED_GROUPS),$($(1)_$(group)_GROUP_SOURCES)))))
 	$$(info Building $$@)
 	$$(RM) -f $$@
 	$$(eval component := $$(lastword $$(subst /, ,$$(@:.a=)) ))
-	$(BOB_SDK_DIRECTORY)$(ARCHIVER) $(BOB_GLOBAL_ARFLAGS) $(TOOLCHAIN_CREATE_ARCHIVE_INDICATOR) $$@ $(TOOLCHAIN_OPTION_FILE_INDICATOR)$$<
+	$(ARCHIVER) $(BOB_GLOBAL_ARFLAGS) $(TOOLCHAIN_CREATE_ARCHIVE_INDICATOR)$$@ $(TOOLCHAIN_OPTION_FILE_INDICATOR)$$<
 
 $(BOB_OUTPUT_BASE_DIRECTORY)/%/$(1).options: $(foreach ext,$(EXTENSIONS),$(if $(filter %.$(ext),$($(1)_SOURCES) $(foreach group,$($(1)_REQUIRED_GROUPS),$($(1)_$(group)_GROUP_SOURCES))),output/$(BOB_PROJECT)/components/$(1)/$(1).$(ext)_options)) $(foreach ext,$(EXTENSIONS),$(foreach group,$($(1)_REQUIRED_GROUPS),$(if $(filter %.$(ext),$($(1)_$(group)_GROUP_SOURCES)),output/$(BOB_PROJECT)/components/$(1)/$(1).$(group).group_$(ext)_options)))
 	@:
