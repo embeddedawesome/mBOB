@@ -86,6 +86,7 @@ $(if $(MISSING_SOURCE_FILES), $(error Component "$(1)" has missing source files:
 
 # Add component library to the list of libraries in this project
 $(eval PROJECT_LIBRARIES += $(BOB_OUTPUT_COMPONENT_DIRECTORY)/$(1)/$(1).a )
+$(eval PROJECT_OBJECTS += $(addprefix output/$(BOB_PROJECT)/components/$(1)/,$(addsuffix .o,$(filter $(addprefix %.,$(EXTENSIONS)),$($(1)_SOURCES) $($(1)_GENERATED_SOURCES) $(foreach group,$($(1)_REQUIRED_GROUPS),$($(1)_$(group)_GROUP_SOURCES))))) )
 
 # Define build rule for all object files
 # Note: % is the source filename including extension
@@ -100,7 +101,7 @@ $(BOB_OUTPUT_COMPONENT_DIRECTORY)/$(1)/%.o:  $($(1)_DIRECTORY)/% output/$(BOB_PR
 	$$(info Compiling $$@)
 	$$($$(filetype)_COMPILER) $(if $(TOOLCHAIN_OPTION_FILE_INDICATOR),$(TOOLCHAIN_OPTION_FILE_INDICATOR)output/$(BOB_PROJECT)/components/$(1)/$(1).$$(filetype)_options $$(group_option),$$($(1)_$$(filetype)_COMPILE_OPTIONS)) $(TOOLCHAIN_DEPENDENCY_INDICATOR) $(TOOLCHAIN_COMPILE_OUTPUT_FLAG)$$@ $$<
 	
-$(BOB_OUTPUT_BASE_DIRECTORY)/%/$(1).a: output/%/$(1).ar_options $(addprefix output/$(BOB_PROJECT)/components/$(1)/,$(addsuffix .o,$(filter $(addprefix %.,$(EXTENSIONS)),$($(1)_SOURCES) $($(1)_GENERATED_SOURCES) $(foreach group,$($(1)_REQUIRED_GROUPS),$($(1)_$(group)_GROUP_SOURCES)))))
+$(BOB_OUTPUT_BASE_DIRECTORY)/%/$(1).a: output/%/$(1).ar_options $(PROJECT_OBJECTS)
 	$$(info Building $$@)
 	$$(RM) -f $$@
 	$$(eval component := $$(lastword $$(subst /, ,$$(@:.a=)) ))
@@ -135,5 +136,5 @@ $(foreach component,$(BOB_COMPONENT_NAMES),\
 
 
 # TODO: Update this to use a calculated list of libraries. The current code can't deal with prebuilt libraries
-$(BOB_PROJECT).library_files: $(sort $(PROJECT_LIBRARIES)) | $(BOB_PROJECT).directories
+$(BOB_PROJECT).library_files: $(if $(TOOLCHAIN_OBJECTS_ONLY),$(PROJECT_OBJECTS),$(sort $(PROJECT_LIBRARIES))) | $(BOB_PROJECT).directories
 	@:
